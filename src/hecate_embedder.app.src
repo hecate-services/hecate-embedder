@@ -10,8 +10,11 @@
         inets,
         ssl,
         public_key,
-        %% Mesh substrate (macula client, realm, capability advertising).
-        hecate_om,
+        %% NOTE: hecate_om is deliberately NOT listed here. It is included in the
+        %% release as `load'-only (see rebar.config relx) and started by
+        %% hecate_embedder_app:start/2 AFTER the realm app-env is set from
+        %% HECATE_REALM — otherwise hecate_om (a normal dep) would auto-start and
+        %% read the realm as undefined before we could set it.
         %% The embedding library (real fastembed NIF on this AVX2 host).
         hecate_embed
     ]},

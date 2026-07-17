@@ -18,6 +18,10 @@
 
 start(_StartType, _StartArgs) ->
     ok = set_realm_from_env(),
+    %% hecate_om is load-only in the release, so it has NOT started yet and its
+    %% identity has not read the realm. Start it now, after the realm is set,
+    %% then boot the service on it.
+    {ok, _} = application:ensure_all_started(hecate_om),
     hecate_om:boot(hecate_embedder_service).
 
 stop(_State) ->
