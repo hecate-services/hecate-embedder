@@ -38,8 +38,12 @@ RUN rebar3 get-deps
 COPY . .
 # The genuine ONNX embedder NIF (from the hecate_embed dep; glibc).
 RUN CARGO_FEATURES=real-embed bash _build/default/lib/hecate_embed/scripts/build-nif.sh
-# Bake the model into the image (no runtime download).
-RUN bash _build/default/lib/hecate_embed/scripts/prefetch-model.sh /models
+# Bake the model into the image (no runtime download). Run from the build root
+# so the -pa to hecate_embed's ebin (and its sibling priv/lib .so) resolves; the
+# dep's own prefetch script assumes the hecate_embed repo layout, not a dep dir.
+RUN mkdir -p /models && erl -noshell -pa _build/default/lib/hecate_embed/ebin \
+      -eval 'case hecate_embed_nif:load(<<"intfloat/multilingual-e5-small">>, 384, <<"/models">>) of {ok, _} -> io:format("baked model into /models~n"); E -> io:format(standard_error, "prefetch failed: ~p~n", [E]), halt(1) end' \
+      -s init stop
 # Production release (bundles ERTS).
 RUN rebar3 as prod release
 
