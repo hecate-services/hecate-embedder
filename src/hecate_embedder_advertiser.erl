@@ -24,7 +24,7 @@
 
 -define(RETRY_MS, 5000).
 
--record(st, {ref :: reference() | undefined}).
+-record(st, {ref :: reference() | advertised | undefined}).
 
 start_link() ->
     gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
@@ -57,6 +57,11 @@ advertise_with({ok, Pool}, {ok, Realm}, St) ->
 advertise_with(_Client, _Realm, St) ->
     retry(St).
 
+%% macula:advertise/5 returns bare `ok' on success; the /3 form returns {ok,Ref}.
+%% Accept both. Anything else is a real failure worth retrying.
+on_advertised(ok, St) ->
+    logger:info("[hecate_embedder] advertising ~ts", [procedure()]),
+    St#st{ref = advertised};
 on_advertised({ok, Ref}, St) ->
     logger:info("[hecate_embedder] advertising ~ts", [procedure()]),
     St#st{ref = Ref};
