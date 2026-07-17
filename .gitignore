@@ -1,0 +1,9 @@
+_build/
+rebar.lock
+*.beam
+priv/lib/*.so
+priv/lib/*.dylib
+priv/models/
+erl_crash.dump
+.rebar3/
+doc/

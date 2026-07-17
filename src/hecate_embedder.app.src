@@ -1,0 +1,27 @@
+{application, hecate_embedder, [
+    {description, "Sovereign sentence-embedding capability on the Macula mesh"},
+    {vsn, "0.1.0"},
+    {registered, [hecate_embedder_sup]},
+    {mod, {hecate_embedder_app, []}},
+    {applications, [
+        kernel,
+        stdlib,
+        crypto,
+        inets,
+        ssl,
+        public_key,
+        %% Mesh substrate (macula client, realm, capability advertising).
+        hecate_om,
+        %% The embedding library (real fastembed NIF on this AVX2 host).
+        hecate_embed
+    ]},
+    {env, [
+        %% The mesh procedure this service advertises; peers call it.
+        {procedure, <<"io.hecate.embed">>}
+    ]},
+    {modules, []},
+    {licenses, ["Apache-2.0"]},
+    {links, [
+        {"Codeberg", "https://codeberg.org/hecate-services/hecate-embedder"}
+    ]}
+]}.

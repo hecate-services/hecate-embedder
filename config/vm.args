@@ -1,0 +1,8 @@
+## Standalone mesh service node. A short name + fixed cookie; it does not
+## cluster (it talks over the macula mesh, not Erlang distribution).
+-sname hecate_embedder
+-setcookie hecate_embedder
+
+## Embedding runs on dirty schedulers; keep the normal ones responsive.
++K true
++A 8
