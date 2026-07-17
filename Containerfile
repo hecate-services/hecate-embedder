@@ -35,12 +35,15 @@ RUN curl -fsSL https://s3.amazonaws.com/rebar3/rebar3 -o /usr/local/bin/rebar3 \
 COPY rebar.config ./
 RUN rebar3 get-deps
 
+# real-embed so the compile post_hook builds hecate_embed's genuine ONNX NIF.
+ENV CARGO_FEATURES=real-embed
 COPY . .
-# The genuine ONNX embedder NIF (from the hecate_embed dep; glibc).
-RUN CARGO_FEATURES=real-embed bash _build/default/lib/hecate_embed/scripts/build-nif.sh
+# Compile: populates hecate_embed's ebin AND (via the post_hook) builds its real
+# NIF into priv/lib — both are needed by the model prefetch below (get-deps
+# alone leaves the ebin empty, which is why the prefetch failed).
+RUN rebar3 compile
 # Bake the model into the image (no runtime download). Run from the build root
-# so the -pa to hecate_embed's ebin (and its sibling priv/lib .so) resolves; the
-# dep's own prefetch script assumes the hecate_embed repo layout, not a dep dir.
+# so the -pa to hecate_embed's ebin (and its sibling priv/lib .so) resolves.
 RUN mkdir -p /models && erl -noshell -pa _build/default/lib/hecate_embed/ebin \
       -eval 'case hecate_embed_nif:load(<<"intfloat/multilingual-e5-small">>, 384, <<"/models">>) of {ok, _} -> io:format("baked model into /models~n"); E -> io:format(standard_error, "prefetch failed: ~p~n", [E]), halt(1) end' \
       -s init stop
